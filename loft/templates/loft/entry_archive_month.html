@@ -1,0 +1,5 @@
+{% extends 'loft/entry_archive_year.html' %}
+
+{% block title %} | {{month|date:"F Y" }}{% endblock title %}
+
+{% block archive_title %}Entries for <span>{{month|date:"F Y" }}</span>{% endblock archive_title %}

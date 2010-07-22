@@ -1,0 +1,7 @@
+{% extends 'loft/base.html' %}
+
+{% block primary_content %}
+    {% for object in object_list %}
+        {% include "loft/includes/entry_object_short.html" %}
+    {% endfor %}
+{% endblock primary_content %}
