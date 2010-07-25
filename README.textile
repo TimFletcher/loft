@@ -1,1 +1,6 @@
-WIP
+h2. Todo
+
+* Commenting - ability to turn off commenting after set number of days
+* Future date based publishing
+* Add tagging options
+* Translations
