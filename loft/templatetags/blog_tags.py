@@ -5,24 +5,47 @@ from django.template import TemplateSyntaxError
 register = template.Library()
 
 def get_latest_entries(parser, token):
-    bits = token.contents.split()
-    if len(bits) != 2:
-        raise TemplateSyntaxError("get_latest_entries tag takes two arguments")
-    return LatestEntriesNode(bits[1])
     
+    """
+    Add a variable to the template context containing the latest [x] blog entries.
+    Default context variable is entry_list
 
-class LatestEntriesNode(template.Node):
-    def __init__(self, num):
-        self.num = num
+    Syntax::
 
-    def render(self, context):
-        context['latest_entries'] = Entry.objects.live[:self.num]
-        return ''
+    {% get_latest_entries [limit] %}
+    {% get_latest_entries [limit] as [varname] %}
+
+    Example usage::
+
+    {% get_latest_entries 5 %}
+    {% get_latest_entries 5 as some_variable %}
+    """
+    
+    tokens = token.contents.split()
+    if len(tokens) not in (2,4):
+        raise template.TemplateSyntaxError("%r tag requires 1 or 3 arguments" % tokens[0])
+    if not tokens[1].isdigit():
+        raise template.TemplateSyntaxError("First argument in %r tag must be an integer" % tokens[0])
+    if len(tokens) == 4:
+        if tokens[2] != 'as':
+            raise template.TemplateSyntaxError("Second argument in %r tag must be 'as'" % tokens[0])
+        return LatestEntriesNode(tokens[1], tokens[3])
+    return LatestEntriesNode(tokens[1])
 register.tag('get_latest_entries', get_latest_entries)
 
+class LatestEntriesNode(template.Node):
+    def __init__(self, limit, varname=None):
+        self.limit, self.varname = limit, varname
 
-def klass(ob):
-    if ob.__class__.__name__ == 'Textarea':
-        return 'large'
-    return 'medium'
-register.filter('klass', klass)
+    def render(self, context):
+        if self.varname:
+            context[self.varname] = Entry.objects.live[:self.limit]
+        else:
+            context['entry_list'] = Entry.objects.live[:self.limit]
+        return ''
+
+# def klass(ob):
+#     if ob.__class__.__name__ == 'Textarea':
+#         return 'large'
+#     return 'medium'
+# register.filter('klass', klass)
