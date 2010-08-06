@@ -4,11 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic.list_detail import object_detail, object_list
 
 live_entries = {
-    'queryset': Entry.objects.live.all(),
+    'queryset': Entry.objects.live,
 }
 
 yearly_entries = {
-    'queryset': Entry.objects.live.all(),
+    'queryset': Entry.objects.live,
     'date_field': 'date_created',
     'make_object_list': True
 }
