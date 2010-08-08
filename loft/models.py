@@ -88,13 +88,19 @@ class Entry(models.Model):
     def lead_in(self):
         
         """
-        Returns a truncated version of the content with an appended 'read
-        more...' link
+        Returns a truncated version of the excerpt or main content with an
+        appended 'read more...' link
+        
+        # TODO Turn this into a template tag to allow text to be configurable
         """
         
-        html = truncate_html_words(self.body, 50, end_text='')
+        if self.excerpt:
+            html = self.excerpt
+        else:
+            html = truncate_html_words(self.body, 50, end_text='')
         permalink = self.permalink(text="read more&hellip;", title="Read full article")
-        return mark_safe("%s %s" % (html, permalink))
+        content = "%s %s" % (html, permalink)
+        return mark_safe(textile.textile(content))
 
     
     def next_entry(self):
