@@ -51,6 +51,7 @@ class Entry(models.Model):
     status          = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     featured        = models.BooleanField(default=False)
     markup          = models.CharField(choices=MARKUP_CHOICES, default='textile', max_length=8)
+    flattr          = models.BooleanField(default=False, help_text="You'll also need to manually add this article to Flattr.")
 
     # Categorisation
     categories = models.ManyToManyField(Category)
