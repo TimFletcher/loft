@@ -4,12 +4,7 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.text import truncate_html_words
 from django.core.urlresolvers import reverse
-# from signals import *
 from managers import BlogManager
-from pygments import highlight
-from pygments.lexers import guess_lexer, PythonLexer
-from pygments.formatters import HtmlFormatter
-from BeautifulSoup import BeautifulSoup
 import textile
 from markdown import markdown
 
