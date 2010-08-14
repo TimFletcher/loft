@@ -31,7 +31,7 @@ class EntryAdmin(admin.ModelAdmin):
             'fields': ('title', 'excerpt', 'body'),
         }),
         ('Metadata', {
-            'fields': ('enable_comments', 'slug', 'status', 'featured')
+            'fields': ('enable_comments', 'slug', 'status', 'featured', 'markup')
         }),
     )
     

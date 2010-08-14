@@ -4,9 +4,14 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.text import truncate_html_words
 from django.core.urlresolvers import reverse
-from signals import *
+# from signals import *
 from managers import BlogManager
+from pygments import highlight
+from pygments.lexers import guess_lexer, PythonLexer
+from pygments.formatters import HtmlFormatter
+from BeautifulSoup import BeautifulSoup
 import textile
+from markdown import markdown
 
 class Category(models.Model):
     title       = models.CharField(max_length=250, help_text='Maximum 250 characters')
@@ -28,6 +33,10 @@ class Entry(models.Model):
         (LIVE, 'Live'),
         (DRAFT, 'Draft')
     )
+    MARKUP_CHOICES = (
+        ('markdown', 'Markdown'),
+        ('textile', 'Textile'),
+    )
 
     # Core
     title        = models.CharField(max_length=250)
@@ -46,11 +55,12 @@ class Entry(models.Model):
     slug            = models.SlugField(unique=True)
     status          = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     featured        = models.BooleanField(default=False)
+    markup          = models.CharField(choices=MARKUP_CHOICES, default='textile', max_length=8)
 
     # Categorisation
     categories = models.ManyToManyField(Category)
-    # tags = TagField()
 
+    objects = BlogManager()
 
     class Meta:
         verbose_name_plural = "Entries"
@@ -61,17 +71,48 @@ class Entry(models.Model):
         return self.title
 
 
-    objects = BlogManager()
-
-
     def save(self, **kwargs):
         
-        """ Create textile versions of the excerpt and body fields """
-        
-        self.body_html = textile.textile(self.body)
-        if self.excerpt:
-            self.excerpt_html = textile.textile(self.excerpt)
+        """
+        Create textile OR markdown versions of the excerpt and body fields.
+        Syntax highlight any code found.
+        """
+
+        if self.markup == 'markdown':
+            self.body_html = markdown(self.body, ['codehilite'])
+            if self.excerpt:
+                self.excerpt_html = markdown(self.excerpt, ['codehilite'])
+        elif self.markup == 'textile':
+            self.body_html = textile.textile(self.body)
+            if self.excerpt:
+                self.excerpt_html = textile.textile(self.excerpt)
         super(Entry, self).save(**kwargs)
+
+
+        # self.body_html = textile.textile(self.body)
+        # if self.excerpt:
+        #     self.excerpt_html = textile.textile(self.excerpt)
+        # super(Entry, self).save(**kwargs)
+
+        # self.body_html = self.highlight_code(self.body)
+        # self.body_html = self.highlight_code(html)
+
+
+    # def highlight_code(self, html):
+    #        soup = BeautifulSoup(html)
+    #        preblocks = soup.findAll('pre')
+    #        for pre in preblocks:
+    #            if pre.has_key('class'):
+    #                try:
+    #                    code = ''.join([unicode(item) for item in pre.contents])
+    #                    code = self.unescape_html(code)
+    #                    lexer = lexers.get_lexer_by_name(pre['class'])
+    #                    formatter = formatters.HtmlFormatter()
+    #                    code_hl = highlight(code, lexer, formatter)
+    #                    pre.replaceWith(BeautifulSoup(code_hl))
+    #                except:
+    #                    pass
+    #        return unicode(soup)
 
 
     def permalink(self, text=None, title=None):
@@ -91,7 +132,7 @@ class Entry(models.Model):
         Returns a truncated version of the excerpt or main content with an
         appended 'read more...' link
         
-        # TODO Turn this into a template tag to allow text to be configurable
+        # TODO Turn this into a template tag to allow text to be configurable?
         """
         
         if self.excerpt:
@@ -100,7 +141,12 @@ class Entry(models.Model):
             html = truncate_html_words(self.body, 50, end_text='')
         permalink = self.permalink(text="read more&hellip;", title="Read full article")
         content = "%s %s" % (html, permalink)
-        return mark_safe(textile.textile(content))
+        
+        if self.markup == 'markdown':
+            return mark_safe(markdown(self.excerpt, ['codehilite']))
+        elif self.markup == 'textile':
+            return mark_safe(textile.textile(content))
+
 
     
     def next_entry(self):
@@ -130,5 +176,5 @@ class Entry(models.Model):
             }
         return reverse(name, kwargs=kwargs)
 
-comment_was_posted.connect(comment_notifier, sender=Comment)
-comment_was_posted.connect(spam_check, sender=Comment)
+# comment_was_posted.connect(comment_notifier, sender=Comment)
+# comment_was_posted.connect(spam_check, sender=Comment)
