@@ -84,32 +84,6 @@ class Entry(models.Model):
         super(Entry, self).save(**kwargs)
 
 
-        # self.body_html = textile.textile(self.body)
-        # if self.excerpt:
-        #     self.excerpt_html = textile.textile(self.excerpt)
-        # super(Entry, self).save(**kwargs)
-
-        # self.body_html = self.highlight_code(self.body)
-        # self.body_html = self.highlight_code(html)
-
-
-    # def highlight_code(self, html):
-    #        soup = BeautifulSoup(html)
-    #        preblocks = soup.findAll('pre')
-    #        for pre in preblocks:
-    #            if pre.has_key('class'):
-    #                try:
-    #                    code = ''.join([unicode(item) for item in pre.contents])
-    #                    code = self.unescape_html(code)
-    #                    lexer = lexers.get_lexer_by_name(pre['class'])
-    #                    formatter = formatters.HtmlFormatter()
-    #                    code_hl = highlight(code, lexer, formatter)
-    #                    pre.replaceWith(BeautifulSoup(code_hl))
-    #                except:
-    #                    pass
-    #        return unicode(soup)
-
-
     def permalink(self, text=None, title=None):
         
         """ Returns an HTML link for use in the admin """
@@ -142,7 +116,6 @@ class Entry(models.Model):
         elif self.markup == 'textile':
             return mark_safe(textile.textile(content))
 
-
     
     def next_entry(self):
         
@@ -170,6 +143,3 @@ class Entry(models.Model):
                 'object_id': self.id
             }
         return reverse(name, kwargs=kwargs)
-
-# comment_was_posted.connect(comment_notifier, sender=Comment)
-# comment_was_posted.connect(spam_check, sender=Comment)

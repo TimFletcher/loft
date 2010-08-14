@@ -1,1 +1,6 @@
-.pyc
+*.pyc
+.DS_Store
+local_settings.py
+*.sqlite3
+*.json
+pip-log.txt
