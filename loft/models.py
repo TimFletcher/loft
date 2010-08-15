@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.text import truncate_html_words
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, ugettext
 from django.core.urlresolvers import reverse
 
 from managers import BlogManager
@@ -96,7 +96,7 @@ class Entry(models.Model):
         if text is None:
             text = self.title
         if title is None:
-            title = _("Permalink to this post")
+            title = ugettext("Permalink to this post")
         return mark_safe('<a href="%s" rel="bookmark permalink" title="%s">%s</a>' % (self.get_absolute_url(), title, text))
 
 
@@ -113,7 +113,7 @@ class Entry(models.Model):
             html = self.excerpt
         else:
             html = truncate_html_words(self.body, 50, end_text='')
-        permalink = self.permalink(text=_("read more&hellip;"), title=_("Read full article"))
+        permalink = self.permalink(text=ugettext("read more&hellip;"), title=ugettext("Read full article"))
         content = "%s %s" % (html, permalink)
         
         if self.markup == 'markdown':
