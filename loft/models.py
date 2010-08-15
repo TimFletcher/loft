@@ -3,19 +3,23 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.text import truncate_html_words
+from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
+
 from managers import BlogManager
 import textile
 from markdown import markdown
 
 class Category(models.Model):
-    title       = models.CharField(max_length=250, help_text='Maximum 250 characters')
-    slug        = models.SlugField(unique=True, help_text='Auto-generated, must be unique')
-    description = models.TextField(blank=True)
+
+    name        = models.CharField(_('title'), max_length=250, help_text=_('Maximum 250 characters'))
+    slug        = models.SlugField(_('slug'), unique=True, help_text=_('Auto-generated, must be unique'))
+    description = models.TextField(_('description'), blank=True)
     
     class Meta:
-        verbose_name_plural = "Categories"
-        ordering = ['title']
+        verbose_name = _('category')
+        verbose_name_plural = _('categories')
+        ordering = ['name']
     
     def __unicode__(self):
         return self.title
@@ -25,41 +29,41 @@ class Entry(models.Model):
 
     LIVE, DRAFT = range(1,3)
     STATUS_CHOICES = (
-        (LIVE, 'Live'),
-        (DRAFT, 'Draft')
+        (LIVE, _('Live')),
+        (DRAFT, _('Draft'))
     )
     MARKUP_CHOICES = (
-        ('markdown', 'Markdown'),
-        ('textile', 'Textile'),
+        ('markdown', _('Markdown')),
+        ('textile', _('Textile')),
     )
 
     # Core
-    title        = models.CharField(max_length=250)
-    excerpt      = models.TextField(blank=True)
-    body         = models.TextField()
+    title        = models.CharField(_('title'), max_length=250)
+    excerpt      = models.TextField(_('excerpt'), blank=True)
+    body         = models.TextField(_('body'))
 
     # Fields to store generated HTML
     body_html    = models.TextField(editable=False, blank=True)
     excerpt_html = models.TextField(editable=False, blank=True)
 
     # Meta
-    author          = models.ForeignKey(User)
+    author          = models.ForeignKey(User, verbose_name=_('user'))
     date_created    = models.DateTimeField(auto_now_add=True)
     date_updated    = models.DateTimeField(auto_now=True)
-    enable_comments = models.BooleanField(default=True)
-    slug            = models.SlugField(unique=True)
-    status          = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
-    featured        = models.BooleanField(default=False)
-    markup          = models.CharField(choices=MARKUP_CHOICES, default='textile', max_length=8)
-    flattr          = models.BooleanField(default=False, help_text="You'll also need to manually add this article to Flattr.")
+    enable_comments = models.BooleanField(_('enable comments'), default=True)
+    slug            = models.SlugField(_('slug'), unique=True)
+    status          = models.IntegerField(_('status'), choices=STATUS_CHOICES, default=LIVE)
+    featured        = models.BooleanField(_('featured'), default=False)
+    markup          = models.CharField(_('markup'), choices=MARKUP_CHOICES, default='textile', max_length=8)
+    flattr          = models.BooleanField(default=False, help_text=_("You'll also need to manually add this article to Flattr."))
 
     # Categorisation
-    categories = models.ManyToManyField(Category)
+    categories = models.ManyToManyField(Category, verbose_name=Category._meta.verbose_name_plural)
 
     objects = BlogManager()
 
     class Meta:
-        verbose_name_plural = "Entries"
+        verbose_name_plural = _('entries')
         ordering = ['-date_created']
 
     
@@ -92,7 +96,7 @@ class Entry(models.Model):
         if text is None:
             text = self.title
         if title is None:
-            title = "Permalink to this post"
+            title = _("Permalink to this post")
         return mark_safe('<a href="%s" rel="bookmark permalink" title="%s">%s</a>' % (self.get_absolute_url(), title, text))
 
 
@@ -109,7 +113,7 @@ class Entry(models.Model):
             html = self.excerpt
         else:
             html = truncate_html_words(self.body, 50, end_text='')
-        permalink = self.permalink(text="read more&hellip;", title="Read full article")
+        permalink = self.permalink(text=_("read more&hellip;"), title=_("Read full article"))
         content = "%s %s" % (html, permalink)
         
         if self.markup == 'markdown':

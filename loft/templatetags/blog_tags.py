@@ -43,9 +43,3 @@ class LatestEntriesNode(template.Node):
         else:
             context['entry_list'] = Entry.objects.live[:self.limit]
         return ''
-
-# def klass(ob):
-#     if ob.__class__.__name__ == 'Textarea':
-#         return 'large'
-#     return 'medium'
-# register.filter('klass', klass)

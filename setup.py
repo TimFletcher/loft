@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name = "loft",
-    version = "0.2",
+    version = "0.3",
     author = "Tim Fletcher",
     author_email = "tim@timothyfletcher.com",
     description = "The Loft blogging application",
