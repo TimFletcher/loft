@@ -51,7 +51,7 @@ class Entry(models.Model):
     date_created    = models.DateTimeField(auto_now_add=True)
     date_updated    = models.DateTimeField(auto_now=True)
     enable_comments = models.BooleanField(_('enable comments'), default=True)
-    slug            = models.SlugField(_('slug'), unique=True)
+    slug            = models.SlugField(_('slug'), unique=True, max_length=70)
     status          = models.IntegerField(_('status'), choices=STATUS_CHOICES, default=LIVE)
     featured        = models.BooleanField(_('featured'), default=False)
     markup          = models.CharField(_('markup'), choices=MARKUP_CHOICES, default='textile', max_length=8)
