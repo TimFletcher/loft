@@ -152,10 +152,10 @@ class Entry(models.Model):
 # If we're using static-generator, blow away the cached files on save.
 try:
     from django.dispatch import dispatcher
-    from django.db.models import signals
+    from django.db.models.signals import post_save
     from staticgenerator import quick_delete
-    def delete(sender, instance):
+    def delete(sender, instance, **kwargs):
         quick_delete(instance, '/')
-    dispatcher.connect(delete, sender=Entry, signal=signals.post_save)
+    post_save.connect(delete, sender=Entry)
 except ImportError:
     pass # Static generator not used
