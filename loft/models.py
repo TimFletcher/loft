@@ -148,3 +148,14 @@ class Entry(models.Model):
                 'object_id': self.id
             }
         return reverse(name, kwargs=kwargs)
+
+# If we're using static-generator, blow away the cached files on save.
+try:
+    from django.dispatch import dispatcher
+    from django.db.models import signals
+    from staticgenerator import quick_delete
+    def delete(sender, instance):
+        quick_delete(instance, '/')
+    dispatcher.connect(delete, sender=Entry, signal=signals.post_save)
+except ImportError:
+    pass # Static generator not used
