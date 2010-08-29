@@ -1,5 +1,3 @@
-from django.contrib.comments import Comment
-from django.contrib.comments.signals import comment_was_posted
 from django.contrib.sites.models import Site
 from django.template.loader import render_to_string
 from django.core.mail import mail_managers
@@ -37,7 +35,8 @@ def comment_notifier(sender, comment, **kwargs):
     if comment.is_public:
         subject = "New comment by %s on %s" % (comment.user_name, Site.objects.get_current().domain)
         body = render_to_string(
-            "comments/notification_email.txt",
-            { 'comment': comment }
+            "comments/notification_email.txt", {
+                'comment': comment
+            }
         )
         mail_managers(subject, body, fail_silently=False, connection=None)

@@ -1,14 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.comments.models import Comment
+from django.contrib.comments.signals import comment_was_posted
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.text import truncate_html_words
 from django.utils.translation import ugettext_lazy as _, ugettext
 from django.core.urlresolvers import reverse
-
 from managers import BlogManager
-import textile
 from markdown import markdown
+from signals import comment_notifier
+import textile
 
 class Category(models.Model):
 
@@ -159,3 +161,6 @@ try:
     post_save.connect(delete, sender=Entry)
 except ImportError:
     pass # Static generator not used
+
+# Signals
+comment_was_posted.connect(comment_notifier, sender=Comment)
