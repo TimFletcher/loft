@@ -164,3 +164,4 @@ except ImportError:
 
 # Signals
 comment_was_posted.connect(comment_notifier, sender=Comment)
+comment_was_posted.connect(comment_spam_check, sender=Comment)

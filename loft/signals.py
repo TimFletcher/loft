@@ -3,7 +3,7 @@ from django.template.loader import render_to_string
 from django.core.mail import mail_managers
 from akismet import Akismet
 
-def spam_check(sender, comment, request, **kwargs):
+def comment_spam_check(sender, comment, request, **kwargs):
     
     """
     Check a comment to see if Akismet flags it as spam
@@ -22,8 +22,7 @@ def spam_check(sender, comment, request, **kwargs):
         'comment_author': comment.user_name.encode('utf-8'),
         }
         if ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True):
-            comment.is_public = False
-            comment.save()
+            comment.delete()
 
 
 def comment_notifier(sender, comment, **kwargs):
