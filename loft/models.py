@@ -163,5 +163,5 @@ except ImportError:
     pass # Static generator not used
 
 # Signals
-comment_was_posted.connect(comment_notifier, sender=Comment)
 comment_was_posted.connect(comment_spam_check, sender=Comment)
+comment_was_posted.connect(comment_notifier, sender=Comment)
