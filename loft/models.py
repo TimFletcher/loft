@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _, ugettext
 from django.core.urlresolvers import reverse
 from managers import BlogManager
 from markdown import markdown
-from signals import comment_notifier
+from signals import comment_notifier, comment_spam_check
 import textile
 
 class Category(models.Model):
