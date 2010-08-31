@@ -1,6 +1,7 @@
 from django.contrib.sites.models import Site
 from django.template.loader import render_to_string
 from django.core.mail import mail_managers
+from django.conf import settings
 from akismet import Akismet
 
 def comment_spam_check(sender, comment, request, **kwargs):
