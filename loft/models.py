@@ -15,7 +15,7 @@ import textile
 
 class Category(models.Model):
 
-    name        = models.CharField(_('name'), max_length=150, help_text=_('Maximum 150 characters'))
+    name        = models.CharField(_('name'), max_length=150, db_index=True, help_text=_('Maximum 150 characters'))
     slug        = models.SlugField(_('slug'), unique=True, help_text=_('Auto-generated, must be unique'))
     description = models.CharField(_('description'), max_length=250, blank=True, help_text=_('Maximum 250 characters'))
     
@@ -45,9 +45,9 @@ class Entry(models.Model):
     )
 
     # Core
-    title        = models.CharField(_('title'), max_length=250)
+    title        = models.CharField(_('title'), max_length=250, db_index=True)
     excerpt      = models.TextField(_('excerpt'), blank=True)
-    body         = models.TextField(_('body'))
+    body         = models.TextField(_('body'), db_index=True)
 
     # Fields to store generated HTML
     body_html    = models.TextField(editable=False, blank=True)
