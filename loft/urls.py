@@ -2,6 +2,10 @@ from django.conf.urls.defaults import *
 from models import Entry
 from django.contrib.auth.decorators import login_required
 from django.views.generic.list_detail import object_detail, object_list
+from django.views.decorators.cache import cache_page
+
+def cache(type):
+    return cache_page(type, 600)
 
 live_entries = {
     'queryset': Entry.objects.live,
@@ -21,7 +25,7 @@ urlpatterns = patterns('django.views.generic.date_based',
 
 urlpatterns += patterns('',
     url(r'^$', object_list, live_entries, name='home_index'),
-    url(r'^(?P<slug>[-\w]+)/$', object_detail, live_entries, name='blog_entry_detail'),
+    url(r'^(?P<slug>[-\w]+)/$', cache(object_detail), live_entries, name='blog_entry_detail'),
     url(r'^draft/(?P<object_id>\d+)/$', login_required(object_detail), {'queryset': Entry.objects.all()}, name='blog_entry_draft')
 )
 
