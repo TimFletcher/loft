@@ -63,7 +63,7 @@ class Entry(models.Model):
     featured        = models.BooleanField(_('featured'), default=False)
     markup          = models.CharField(_('markup'), choices=MARKUP_CHOICES, default='textile', max_length=8)
     flattr          = models.BooleanField(default=False, help_text=_("You'll also need to manually add this article to Flattr."))
-    categories      = models.ManyToManyField(Category, related_name="entry_categories", verbose_name=Category._meta.verbose_name_plural)
+    categories      = models.ManyToManyField('loft.Category', related_name="entry_categories", verbose_name=Category._meta.verbose_name_plural)
 
     objects = BlogManager()
 
