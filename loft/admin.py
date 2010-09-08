@@ -46,7 +46,6 @@ class EntryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ['title']}
     ordering = ('-date_created',)
     actions = ['make_published', 'make_draft']
-    
     fieldsets = (
         ('Post Details', {
             'fields': ('title', 'excerpt', 'body', 'categories'),
@@ -64,9 +63,14 @@ class EntryAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
+
+    def entry_count(self, obj):
+        return obj.entry_categories.all().count()
+    entry_count.short_description = _('Entries')
+
     form = CategoryAdminForm
     prepopulated_fields = {'slug': ['name']}
-    list_display = ('name', 'description')
+    list_display = ('name', 'description', 'entry_count')
     fieldsets = (
         ('Post Details', {
             'fields': ('name',),
