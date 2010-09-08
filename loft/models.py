@@ -10,13 +10,14 @@ from django.core.urlresolvers import reverse
 from managers import BlogManager
 from markdown import markdown
 from signals import comment_notifier, comment_spam_check
+from django.template.defaultfilters import slugify
 import textile
 
 class Category(models.Model):
 
-    name        = models.CharField(_('title'), max_length=250, help_text=_('Maximum 250 characters'))
+    name        = models.CharField(_('name'), max_length=150, help_text=_('Maximum 150 characters'))
     slug        = models.SlugField(_('slug'), unique=True, help_text=_('Auto-generated, must be unique'))
-    description = models.TextField(_('description'), blank=True)
+    description = models.CharField(_('description'), max_length=250, blank=True, help_text=_('Maximum 250 characters'))
     
     class Meta:
         verbose_name = _('category')
@@ -24,7 +25,11 @@ class Category(models.Model):
         ordering = ['name']
     
     def __unicode__(self):
-        return self.title
+        return self.name
+
+    def save(self, **kwargs):
+        self.slug = slugify(self.name)
+        super(Category, self).save(**kwargs)
 
 
 class Entry(models.Model):
@@ -58,26 +63,22 @@ class Entry(models.Model):
     featured        = models.BooleanField(_('featured'), default=False)
     markup          = models.CharField(_('markup'), choices=MARKUP_CHOICES, default='textile', max_length=8)
     flattr          = models.BooleanField(default=False, help_text=_("You'll also need to manually add this article to Flattr."))
-
-    # Categorisation
-    categories = models.ManyToManyField(Category, verbose_name=Category._meta.verbose_name_plural)
+    categories      = models.ManyToManyField(Category, verbose_name=Category._meta.verbose_name_plural)
 
     objects = BlogManager()
 
     class Meta:
         verbose_name_plural = _('entries')
         ordering = ['-date_created']
-
     
     def __unicode__(self):
         return self.title
-
 
     def save(self, **kwargs):
         
         """
         Create textile OR markdown versions of the excerpt and body fields.
-        Syntax highlight any code found.
+        Syntax highlight any code found if using Markdown.
         """
 
         if self.markup == 'markdown':
@@ -90,7 +91,6 @@ class Entry(models.Model):
                 self.excerpt_html = textile.textile(self.excerpt)
         super(Entry, self).save(**kwargs)
 
-
     def permalink(self, text=None, title=None):
         
         """ Returns an HTML link for use in the admin """
@@ -100,7 +100,6 @@ class Entry(models.Model):
         if title is None:
             title = ugettext("Permalink to this post")
         return mark_safe('<a href="%s" rel="bookmark permalink" title="%s">%s</a>' % (self.get_absolute_url(), title, text))
-
 
     def lead_in(self):
         
@@ -122,7 +121,6 @@ class Entry(models.Model):
             return mark_safe(markdown(self.excerpt, ['codehilite']))
         elif self.markup == 'textile':
             return mark_safe(textile.textile(content))
-
     
     def next_entry(self):
         
@@ -130,13 +128,11 @@ class Entry(models.Model):
 
         return self.get_next_by_date_created(status=self.LIVE)
 
-
     def previous_entry(self):
-        
-        """ Utility method to return the previous published entry by date """
-        
-        return self.get_previous_by_date_created(status=self.LIVE)
 
+        """ Utility method to return the previous published entry by date """
+
+        return self.get_previous_by_date_created(status=self.LIVE)
 
     def get_absolute_url(self):
         if self.status == self.LIVE:
@@ -152,15 +148,16 @@ class Entry(models.Model):
         return reverse(name, kwargs=kwargs)
 
 # If we're using static-generator, blow away the cached files on save.
-try:
-    from django.dispatch import dispatcher
-    from django.db.models.signals import post_save
-    from staticgenerator import quick_delete
-    def delete(sender, instance, **kwargs):
-        quick_delete(instance, '/')
-    post_save.connect(delete, sender=Entry)
-except ImportError:
-    pass # Static generator not used
+# Note that this doesn't work for admin action queryset updates.
+# try:
+#     from django.dispatch import dispatcher
+#     from django.db.models.signals import post_save
+#     from staticgenerator import quick_delete
+#     def delete(sender, instance, **kwargs):
+#         quick_delete(instance, '/')
+#     post_save.connect(delete, sender=Entry)
+# except ImportError:
+#     pass # Static generator not used
 
 # Signals
 comment_was_posted.connect(comment_spam_check, sender=Comment)
