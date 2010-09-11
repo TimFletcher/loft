@@ -9,4 +9,4 @@ class LoftSitemap(Sitemap):
         return Entry.objects.live.all()
 
     def lastmod(self, obj):
-        return obj.date_updated
+        return obj.updated

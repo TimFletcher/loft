@@ -19,7 +19,7 @@ class EntryAdmin(admin.ModelAdmin):
     admin_link.short_description = _('Link')
 
     def format_date(self, obj):        
-        return obj.date_created.strftime('%d %b, %Y')
+        return obj.created.strftime('%d %b, %Y')
     format_date.short_description = _('Date Created')
 
     def make_published(self, request, queryset):
@@ -41,10 +41,10 @@ class EntryAdmin(admin.ModelAdmin):
     make_draft.short_description = ugettext_lazy("Set selected %(verbose_name_plural)s as draft")
 
     list_display = ('title', 'format_date', 'status', 'admin_link')
-    list_filter = ('date_created', 'status', 'categories')
+    list_filter = ('created', 'status', 'categories')
     search_fields = ('title', 'body')
     prepopulated_fields = {'slug': ['title']}
-    ordering = ('-date_created',)
+    ordering = ('-created',)
     actions = ['make_published', 'make_draft']
     fieldsets = (
         ('Post Details', {

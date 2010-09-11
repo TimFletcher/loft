@@ -53,8 +53,8 @@ class Entry(models.Model):
 
     # Meta
     author          = models.ForeignKey(User, verbose_name=_('user'))
-    date_created    = models.DateTimeField(auto_now_add=True)
-    date_updated    = models.DateTimeField(auto_now=True)
+    created         = models.DateTimeField(auto_now_add=True)
+    updated         = models.DateTimeField(auto_now=True)
     enable_comments = models.BooleanField(_('enable comments'), default=True)
     status          = models.IntegerField(_('status'), choices=STATUS_CHOICES, default=LIVE)
     featured        = models.BooleanField(_('featured'), default=False)
@@ -73,7 +73,7 @@ class Entry(models.Model):
 
     class Meta:
         verbose_name_plural = _('entries')
-        ordering = ['-date_created']
+        ordering = ['-created']
     
     def __unicode__(self):
         return self.title
@@ -127,15 +127,11 @@ class Entry(models.Model):
             return mark_safe(textile.textile(content))
     
     def next_entry(self):
-        
         """ Utility method to return the next published entry by date """
-
         return self.get_next_by_date_created(status=self.LIVE)
 
     def previous_entry(self):
-
         """ Utility method to return the previous published entry by date """
-
         return self.get_previous_by_date_created(status=self.LIVE)
 
     def get_absolute_url(self):
