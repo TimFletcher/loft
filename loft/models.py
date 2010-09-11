@@ -47,24 +47,28 @@ class Entry(models.Model):
     # Core
     title        = models.CharField(_('title'), max_length=250, db_index=True)
     excerpt      = models.TextField(_('excerpt'), blank=True)
-    body         = models.TextField(_('body'), db_index=True)
-
-    # Fields to store generated HTML
-    body_html    = models.TextField(editable=False, blank=True)
     excerpt_html = models.TextField(editable=False, blank=True)
+    body         = models.TextField(_('body'), db_index=True)
+    body_html    = models.TextField(editable=False, blank=True)
 
     # Meta
     author          = models.ForeignKey(User, verbose_name=_('user'))
     date_created    = models.DateTimeField(auto_now_add=True)
     date_updated    = models.DateTimeField(auto_now=True)
     enable_comments = models.BooleanField(_('enable comments'), default=True)
-    slug            = models.SlugField(_('slug'), unique=True, max_length=70)
     status          = models.IntegerField(_('status'), choices=STATUS_CHOICES, default=LIVE)
     featured        = models.BooleanField(_('featured'), default=False)
     markup          = models.CharField(_('markup'), choices=MARKUP_CHOICES, default='textile', max_length=8)
     flattr          = models.BooleanField(default=False, help_text=_("You'll also need to manually add this article to Flattr."))
-    categories      = models.ManyToManyField('loft.Category', related_name="entry_categories", verbose_name=Category._meta.verbose_name_plural)
+    categories      = models.ManyToManyField('loft.Category', blank=True, related_name="entry_categories", verbose_name=Category._meta.verbose_name_plural)
 
+    # SEO
+    slug              = models.SlugField(_('URL Slug'), unique=True, max_length=70)
+    page_title        = models.CharField(_('Page Title'), blank=True, max_length=250, help_text="Text that appears in the tab or the top of the browser window.")
+    meta_keywords     = models.CharField(_('Meta Keywords'), blank=True, max_length=250)
+    meta_description  = models.CharField(_('Meta Description'), blank=True, max_length=250)
+    generic_meta_tags = models.TextField(_('Generic Meta Tags'), blank=True, help_text="Code here will be added within the page's &lt;head&gt; tag.")
+    
     objects = BlogManager()
 
     class Meta:

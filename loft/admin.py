@@ -48,13 +48,18 @@ class EntryAdmin(admin.ModelAdmin):
     actions = ['make_published', 'make_draft']
     fieldsets = (
         ('Post Details', {
-            'fields': ('title', 'excerpt', 'body', 'categories'),
+            'fields': ('title', 'excerpt', 'body'),
         }),
         ('Metadata', {
-            'fields': ('enable_comments', 'slug', 'status', 'markup', 'featured', 'flattr')
+            'fields': ('categories', 'status', 'markup', 'enable_comments', 'featured', 'flattr'),
+            'classes': ('collapse',)
+        }),
+        ('Search Engine Optimisation', {
+            'fields': ('slug', 'page_title', 'meta_keywords', 'meta_description', 'generic_meta_tags'),
+            'classes': ('collapse',)
         }),
     )
-    
+
     def save_model(self, request, obj, form, change):
         if not change:
             obj.author = request.user
