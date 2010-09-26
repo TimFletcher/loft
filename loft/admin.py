@@ -6,6 +6,14 @@ from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_lazy
 from models import Entry
 from forms import CategoryAdminForm
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+from django.core.urlresolvers import reverse
+from django.utils.encoding import force_unicode
+from django.http import HttpResponse, HttpResponseRedirect
+from django.utils.html import escape
+import urllib, urllib2
+import urlparse
 
 class EntryAdmin(admin.ModelAdmin):
     
@@ -40,6 +48,8 @@ class EntryAdmin(admin.ModelAdmin):
         messages.info(request, '%d %s set as draft.' % (row_count, snippet))
     make_draft.short_description = ugettext_lazy("Set selected %(verbose_name_plural)s as draft")
 
+    # TODO actions for bulk on/off of comments
+
     list_display = ('title', 'format_date', 'status', 'admin_link')
     list_filter = ('created', 'status', 'categories')
     search_fields = ('title', 'body')
@@ -48,6 +58,7 @@ class EntryAdmin(admin.ModelAdmin):
     actions = ['make_published', 'make_draft']
     fieldsets = (
         ('Post Details', {
+            # 'fields': ('title', 'excerpt', 'body', 'images'),
             'fields': ('title', 'excerpt', 'body'),
         }),
         ('Metadata', {
@@ -61,9 +72,8 @@ class EntryAdmin(admin.ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
-        if not change:
-            obj.author = request.user
-            obj.slug   = slugify(obj.title)
+        obj.author = request.user
+        obj.slug   = slugify(obj.title)
         obj.save()
 
 
@@ -85,5 +95,6 @@ class CategoryAdmin(admin.ModelAdmin):
         }),
     )
 
+        
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(Category, CategoryAdmin)

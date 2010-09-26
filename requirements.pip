@@ -2,3 +2,4 @@ textile
 akismet
 Markdown
 Pygments
+git+git://github.com/TimFletcher/django_snipshot.git

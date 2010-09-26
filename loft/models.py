@@ -50,6 +50,7 @@ class Entry(models.Model):
     excerpt_html = models.TextField(editable=False, blank=True)
     body         = models.TextField(_('body'), db_index=True)
     body_html    = models.TextField(editable=False, blank=True)
+    # images       = models.ManyToManyField('django_snipshot.Image', related_name="entry_images")
 
     # Meta
     author          = models.ForeignKey(User, verbose_name=_('user'))
@@ -146,19 +147,17 @@ class Entry(models.Model):
                 'object_id': self.id
             }
         return reverse(name, kwargs=kwargs)
-
+    
 # If we're using static-generator, blow away the cached files on save.
-# Note that this doesn't work for admin action queryset updates.
-# try:
-#     from django.dispatch import dispatcher
-#     from django.db.models.signals import post_save
-#     from staticgenerator import quick_delete
-#     def delete(sender, instance, **kwargs):
-#         quick_delete(instance, '/')
-#     post_save.connect(delete, sender=Entry)
-# except ImportError:
-#     pass # Static generator not used
+# TODO This needs to work for entries updated by admin actions.
+if 'staticgenerator.middleware.StaticGeneratorMiddleware' in settings.MIDDLEWARE_CLASSES:
+    from django.dispatch import dispatcher
+    from django.db.models.signals import post_save
+    from staticgenerator import quick_delete
+    def delete(sender, instance, **kwargs):
+        quick_delete(instance, '/')
+    post_save.connect(delete, sender=Entry)
 
-# Signals
+# Comment signals
 comment_was_posted.connect(comment_spam_check, sender=Comment)
 comment_was_posted.connect(comment_notifier, sender=Comment)
