@@ -50,7 +50,7 @@ class EntryAdmin(admin.ModelAdmin):
 
     # TODO actions for bulk on/off of comments
 
-    list_display = ('title', 'format_date', 'status', 'admin_link')
+    list_display = ('title', 'format_date', 'status', 'enable_comments', 'admin_link')
     list_filter = ('created', 'status', 'categories')
     search_fields = ('title', 'body')
     prepopulated_fields = {'slug': ['title']}
