@@ -6,7 +6,7 @@ class LoftSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return Entry.objects.live.all()
+        return Entry.objects.published()
 
     def lastmod(self, obj):
         return obj.updated

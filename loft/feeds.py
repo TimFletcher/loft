@@ -8,7 +8,7 @@ class LoftEntryFeedRSS(Feed):
     description = "A web developer's blog."
 
     def items(self):
-        return Entry.objects.live[:20]
+        return Entry.objects.published()[:20]
 
     def item_title(self, item):
         return item.title

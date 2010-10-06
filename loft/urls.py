@@ -5,18 +5,21 @@ from django.views.generic.list_detail import object_detail, object_list
 from loft.feeds import LoftEntryFeedRSS, LoftEntryFeedAtom
 
 live_entries = {
-    'queryset': Entry.objects.live,
+    'queryset': Entry.objects.published(),
 }
 
-yearly_entries = {
-    'queryset': Entry.objects.live,
-    'date_field': 'created',
-    'make_object_list': True
-}
+monthly_entries = dict(live_entries.items() + [
+    ('date_field', 'created')
+])
+
+yearly_entries = dict(monthly_entries.items() + [
+    ('date_field', 'created'),
+    ('make_object_list', True)
+])
 
 urlpatterns = patterns('django.views.generic.date_based',
     url(r'^(?P<year>\d{4})/$', 'archive_year', yearly_entries, name='blog_entry_archive_year'),
-    url(r'^(?P<year>\d{4})/(?P<month>\w{3})/$', 'archive_month', dict(live_entries, date_field='created'), name='blog_entry_archive_month'),
+    url(r'^(?P<year>\d{4})/(?P<month>\w{3})/$', 'archive_month', monthly_entries, name='blog_entry_archive_month'),
     (r'^comments/', include('django.contrib.comments.urls')),
 )
 

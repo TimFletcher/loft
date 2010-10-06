@@ -2,9 +2,9 @@ from django.db import models
 from datetime import datetime
 
 class BlogManager(models.Manager):
-    def _live(self):
-        return self.get_query_set().filter(
-            status=self.model.LIVE,
-            created__lte=datetime.now()
+
+    def published(self):
+        return self.exclude(
+            status=self.model.DRAFT,
+            created__lte=datetime.now
         )
-    live = property(_live)
