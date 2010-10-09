@@ -28,7 +28,8 @@ class Category(models.Model):
         return self.name
 
     def save(self, **kwargs):
-        self.slug = slugify(self.name)
+        if not self.slug:
+            self.slug = slugify(self.name)
         super(Category, self).save(**kwargs)
 
 
