@@ -73,7 +73,8 @@ class EntryAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.author = request.user
-        obj.slug   = slugify(obj.title)
+        if not obj.slug:
+            obj.slug = slugify(obj.title)
         obj.save()
 
 
