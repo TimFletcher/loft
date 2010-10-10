@@ -101,10 +101,8 @@ class Entry(models.Model):
         
         """ Returns an HTML link for use in the admin """
         
-        if text is None:
-            text = self.title
-        if title is None:
-            title = ugettext("Permalink to this post")
+        if text is None: text = self.title
+        if title is None: title = ugettext("Permalink to this post")
         return mark_safe('<a href="%s" rel="bookmark permalink" title="%s">%s</a>' % (self.get_absolute_url(), title, text))
 
     def lead_in(self):
@@ -148,7 +146,6 @@ class Entry(models.Model):
         return reverse(name, kwargs=kwargs)
     
 # If we're using static-generator, blow away the cached files on save.
-# TODO This needs to work for entries updated by admin actions.
 if 'staticgenerator.middleware.StaticGeneratorMiddleware' in settings.MIDDLEWARE_CLASSES:
     from django.dispatch import dispatcher
     from django.db.models.signals import post_save
