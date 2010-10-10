@@ -37,7 +37,7 @@ class Entry(models.Model):
 
     LIVE, DRAFT = range(1,3)
     STATUS_CHOICES = (
-        (LIVE, _('Live')),
+        (LIVE, _('Published')),
         (DRAFT, _('Draft'))
     )
     MARKUP_CHOICES = (
@@ -112,8 +112,6 @@ class Entry(models.Model):
         """
         Returns a truncated version of the excerpt or main content with an
         appended 'read more...' link
-        
-        # TODO Turn this into a template tag to allow text to be configurable?
         """
         
         if self.excerpt:

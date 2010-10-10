@@ -32,33 +32,32 @@ class EntryAdmin(admin.ModelAdmin):
 
     def make_published(self, request, queryset):
         row_count = queryset.update(status=Entry.LIVE)
-        if row_count == 1:
-            snippet = "entry was"
-        else:
-            snippet = "entries were"
-        messages.info(request, '%d %s set as published.' % (row_count, snippet))
+        messages.info(request, '%d entr%s set as published.' % (row_count, pluralize(row_count, 'y was,ies were')))
     make_published.short_description = ugettext_lazy("Set selected %(verbose_name_plural)s as published")
 
     def make_draft(self, request, queryset):
         row_count = queryset.update(status=Entry.DRAFT)
-        if row_count == 1:
-            snippet = "entry was"
-        else:
-            snippet = "entries were"
-        messages.info(request, '%d %s set as draft.' % (row_count, snippet))
+        messages.info(request, '%d entr%s set as draft.' % (row_count, pluralize(row_count, 'y was,ies were')))
     make_draft.short_description = ugettext_lazy("Set selected %(verbose_name_plural)s as draft")
 
-    # TODO actions for bulk on/off of comments
+    def enable_comments(self, request, queryset):
+        row_count = queryset.update(enable_comments=True)
+        messages.info(request, 'Commenting was enabled on %d entr%s' % (row_count, pluralize(row_count, 'y,ies')))
+    enable_comments.short_description = ugettext_lazy("Enable commenting on selected %(verbose_name_plural)s")
 
+    def disable_comments(self, request, queryset):
+        row_count = queryset.update(enable_comments=False)
+        messages.info(request, 'Commenting was disabled on %d entr%s' % (row_count, pluralize(row_count, 'y,ies')))
+    disable_comments.short_description = ugettext_lazy("Disable commenting on selected %(verbose_name_plural)s")
+    
     list_display = ('title', 'format_date', 'status', 'enable_comments', 'admin_link')
     list_filter = ('created', 'status', 'categories')
     search_fields = ('title', 'body')
     prepopulated_fields = {'slug': ['title']}
     ordering = ('-created',)
-    actions = ['make_published', 'make_draft']
+    actions = ['make_published', 'make_draft', 'enable_comments', 'disable_comments']
     fieldsets = (
         ('Post Details', {
-            # 'fields': ('title', 'excerpt', 'body', 'images'),
             'fields': ('title', 'excerpt', 'body'),
         }),
         ('Metadata', {
