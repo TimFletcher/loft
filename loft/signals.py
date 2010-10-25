@@ -6,7 +6,10 @@ from akismet import Akismet
 
 def comment_spam_check(sender, comment, request, **kwargs):
     
-    """ Check a comment to see if Akismet flags it as spam """
+    """
+    Check a comment to see if Akismet flags it as spam and deletes it if it
+    was detected as such.
+    """
     
     ak = Akismet(
         key=settings.AKISMET_API_KEY,
@@ -21,13 +24,12 @@ def comment_spam_check(sender, comment, request, **kwargs):
         'comment_author': comment.user_name.encode('utf-8'),
         }
         if ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True):
-            comment.is_public=False
-            comment.save()
+            return False
 
 
 def comment_notifier(sender, comment, **kwargs):
     
-    """ Email admins when a new comment is posted """
+    """ Email managers when a new comment is posted """
     
     if comment.is_public:
         subject = "New comment by %s on %s" % (comment.user_name, Site.objects.get_current().domain)

@@ -1,16 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.comments.models import Comment
-from django.contrib.comments.signals import comment_was_posted
+from django.contrib.comments.signals import comment_was_posted, comment_will_be_posted
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.utils.text import truncate_html_words
 from django.utils.translation import ugettext_lazy as _, ugettext
 from django.core.urlresolvers import reverse
+from django.template.defaultfilters import slugify
 from managers import BlogManager
 from markdown import markdown
 from signals import comment_notifier, comment_spam_check
-from django.template.defaultfilters import slugify
 import textile
 
 class Category(models.Model):
@@ -36,7 +36,7 @@ class Category(models.Model):
 class Entry(models.Model):
 
     LIVE, DRAFT = range(1,3)
-    STATUS_CHOICES = (
+    STATUS_CHOICES = ( # Could possible get rid of this and use a nullable date column?
         (LIVE, _('Published')),
         (DRAFT, _('Draft'))
     )
@@ -155,5 +155,5 @@ if 'staticgenerator.middleware.StaticGeneratorMiddleware' in settings.MIDDLEWARE
     post_save.connect(delete, sender=Entry)
 
 # Comment signals
-comment_was_posted.connect(comment_spam_check, sender=Comment)
+comment_will_be_posted.connect(comment_spam_check, sender=Comment)
 comment_was_posted.connect(comment_notifier, sender=Comment)
