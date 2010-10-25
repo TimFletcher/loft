@@ -3,6 +3,12 @@ from django.template.loader import render_to_string
 from django.core.mail import mail_managers
 from django.conf import settings
 from akismet import Akismet
+import sys
+
+try:
+    AKISMET_API_KEY = getattr(settings, 'AKISMET_API_KEY')
+except AttributeError, e:
+    sys.stdout.write('\n--- AKISMET_API_KEY not set in settings.py ---\n\n')
 
 def comment_spam_check(sender, comment, request, **kwargs):
     
@@ -12,7 +18,7 @@ def comment_spam_check(sender, comment, request, **kwargs):
     """
     
     ak = Akismet(
-        key=settings.AKISMET_API_KEY,
+        key=AKISMET_API_KEY,
         blog_url='http://%s/' % Site.objects.get_current().domain
     )
     if ak.verify_key():
