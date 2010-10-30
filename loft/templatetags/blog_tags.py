@@ -38,8 +38,5 @@ class LatestEntriesNode(template.Node):
         self.limit, self.varname = limit, varname
 
     def render(self, context):
-        if self.varname:
-            context[self.varname] = Entry.objects.published()[:self.limit]
-        else:
-            context['entry_list'] = Entry.objects.published()[:self.limit]
+        context[self.varname or 'entry_list'] = Entry.objects.published()[:self.limit]
         return ''

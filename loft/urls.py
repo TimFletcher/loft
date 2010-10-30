@@ -2,7 +2,8 @@ from django.conf.urls.defaults import *
 from models import Entry
 from django.contrib.auth.decorators import login_required
 from django.views.generic.list_detail import object_detail, object_list
-from loft.feeds import LoftEntryFeedRSS, LoftEntryFeedAtom
+from feeds import LoftEntryFeedRSS, LoftEntryFeedAtom
+import views as loft_views
 
 live_entries = {
     'queryset': Entry.objects.published(),
@@ -27,6 +28,6 @@ urlpatterns += patterns('',
     url(r'^$', object_list, live_entries, name='home_index'),
     url(r'^feeds/rss/$', LoftEntryFeedRSS(), name='blog_rss_feed'),
     url(r'^feeds/atom/$', LoftEntryFeedAtom(), name='blog_atom_feed'),
-    url(r'^(?P<slug>[-\w]+)/$', object_detail, live_entries, name='blog_entry_detail'),
+    url(r'^(?P<slug>[-\w]+)/$', loft_views.detail, {'klass': Entry}, name='blog_entry_detail'),
     url(r'^draft/(?P<object_id>\d+)/$', login_required(object_detail), {'queryset': Entry.objects.all()}, name='blog_entry_draft')
 )
