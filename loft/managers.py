@@ -4,7 +4,8 @@ from datetime import datetime
 class BlogManager(models.Manager):
 
     def published(self):
+        
         return self.exclude(
-            status=self.model.DRAFT,
-            created__lte=datetime.now
+            status=self.model.DRAFT
+            # created__lte=datetime.now
         )

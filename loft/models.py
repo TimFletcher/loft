@@ -36,7 +36,7 @@ class Category(models.Model):
 class Entry(models.Model):
 
     LIVE, DRAFT = range(1,3)
-    STATUS_CHOICES = ( # Could possible get rid of this and use a nullable date column?
+    STATUS_CHOICES = (
         (LIVE, _('Published')),
         (DRAFT, _('Draft'))
     )
@@ -131,6 +131,12 @@ class Entry(models.Model):
     def previous_entry(self):
         """ Utility method to return the previous published entry by date """
         return self.get_previous_by_date_created(status=self.LIVE)
+
+    def is_draft(self):
+        return self.status == self.DRAFT
+
+    def is_live(self):
+        return self.status == self.LIVE
 
     def get_absolute_url(self):
         if self.status == self.LIVE:
