@@ -7,8 +7,15 @@ def detail(request, klass, slug):
     
     """
     Simple decorated view to return either a rendered template or, if requested
-    via AJAX, a JSON response. Note that in order to get queryset.values() for
-    the json response for a single object, we user filter() rather than get().
+    via AJAX, a JSON response. Note that we are returning queryset.values()
+    rather than a serialized version of the object because we shouldn't be
+    exposing every field in the json. values() can only be run on a queryset
+    hence we use filter() rather than get().
+
+    There are issues with this method. queryset.values() only works for model
+    field attributes, not methods. If you need this functionality, you're
+    probably better off using a decorator that serialises a dictionary that
+    you build manually.
     """
 
     obj = klass._default_manager.filter(slug=slug)
