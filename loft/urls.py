@@ -25,9 +25,9 @@ urlpatterns = patterns('django.views.generic.date_based',
 )
 
 urlpatterns += patterns('',
-    url(r'^$', object_list, live_entries, name='home_index'),
-    url(r'^feeds/rss/$', LoftEntryFeedRSS(), name='blog_rss_feed'),
-    url(r'^feeds/atom/$', LoftEntryFeedAtom(), name='blog_atom_feed'),
+    url(r'^$', loft_views.list, {'klass': Entry}, name='home_index'),
     url(r'^(?P<slug>[-\w]+)/$', loft_views.detail, {'klass': Entry}, name='blog_entry_detail'),
-    url(r'^draft/(?P<object_id>\d+)/$', login_required(object_detail), {'queryset': Entry.objects.all()}, name='blog_entry_draft')
+    url(r'^draft/(?P<object_id>\d+)/$', login_required(object_detail), {'queryset': Entry.objects.all()}, name='blog_entry_draft'),
+    url(r'^feeds/rss/$', LoftEntryFeedRSS(), name='blog_rss_feed'),
+    url(r'^feeds/atom/$', LoftEntryFeedAtom(), name='blog_atom_feed')
 )

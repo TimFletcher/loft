@@ -40,18 +40,16 @@ class ValuesDjangoJSONEncoder(DjangoJSONEncoder):
         return DjangoJSONEncoder.default(self, obj)
 
 def add_ajax(template_name):
-    
+
     """
-    Decorator to render a response either with a template, as normal or as
+    Decorator to render a response either with a template, as normal, or as
     JSON. All querysets and model instances are converted to JSON.
     """
-    
+
     def decorator(view):
         def wrapper(request, *args, **kwargs):
 
-            """
-            Find any ValuesQuerySets in the view's returned dictionary
-            """
+            """ Find any ValuesQuerySets in the view's returned dictionary """
 
             data = view(request, *args, **kwargs)
             if request.is_ajax():
@@ -71,3 +69,13 @@ def add_ajax(template_name):
         wrapper.__doc__ = view.__doc__
         return wrapper
     return decorator
+
+"""
+NOTES
+
+To convert a model object to a dictionary but keep the related objects intact:
+
+obj = get_object_or_404(klass, slug=slug)
+fields = ['title','body']
+dictionary = dict((x.name, getattr(obj, x.name)) for x in obj._meta.fields if x.name in fields)
+"""
