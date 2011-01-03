@@ -2,35 +2,32 @@ from django.contrib.sites.models import Site
 from django.template.loader import render_to_string
 from django.core.mail import mail_managers
 from django.conf import settings
-from akismet import Akismet
-import sys
-
-try:
-    AKISMET_API_KEY = getattr(settings, 'AKISMET_API_KEY')
-except AttributeError, e:
-    sys.stdout.write('\n--- AKISMET_API_KEY not set in settings.py ---\n\n')
 
 def comment_spam_check(sender, comment, request, **kwargs):
-    
+
     """
     Check a comment to see if Akismet flags it as spam and deletes it if it
     was detected as such.
     """
-    
-    ak = Akismet(
-        key=AKISMET_API_KEY,
-        blog_url='http://%s/' % Site.objects.get_current().domain
-    )
-    if ak.verify_key():
-        data = {
-        'user_ip': request.META.get('REMOTE_ADDR', '127.0.0.1'),
-        'user_agent': request.META.get('HTTP_USER_AGENT', ''),
-        'referrer': request.META.get('HTTP_REFERER', ''),
-        'comment_type': 'comment',
-        'comment_author': comment.user_name.encode('utf-8'),
-        }
-        if ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True):
-            return False
+    AKISMET_API_KEY = getattr(settings, 'AKISMET_API_KEY', False)
+    if AKISMET_API_KEY:
+        from akismet import Akismet
+        ak = Akismet(
+            key=AKISMET_API_KEY,
+            blog_url='http://%s/' % Site.objects.get_current().domain
+        )
+        if ak.verify_key():
+            data = {
+            'user_ip': request.META.get('REMOTE_ADDR', '127.0.0.1'),
+            'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+            'referrer': request.META.get('HTTP_REFERER', ''),
+            'comment_type': 'comment',
+            'comment_author': comment.user_name.encode('utf-8'),
+            }
+            if ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True):
+                return False
+    else:
+        return True
 
 
 def comment_notifier(sender, comment, **kwargs):

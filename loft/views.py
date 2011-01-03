@@ -32,7 +32,7 @@ def detail(request, klass, slug):
 
 @add_ajax('loft/entry_list.html')
 def list(request, klass):
-    obj_list = klass._default_manager.all()
+    obj_list = klass._default_manager.published()
     return {
         'object_list': obj_list,
         'object_list_json': obj_list.values(

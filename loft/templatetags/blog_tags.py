@@ -5,7 +5,7 @@ from django.template import TemplateSyntaxError
 register = template.Library()
 
 def get_latest_entries(parser, token):
-    
+
     """
     Add a variable to the template context containing the latest [x] blog entries.
     Default context variable is entry_list
@@ -20,7 +20,7 @@ def get_latest_entries(parser, token):
     {% get_latest_entries 5 %}
     {% get_latest_entries 5 as some_variable %}
     """
-    
+
     tokens = token.contents.split()
     if len(tokens) not in (2,4):
         raise template.TemplateSyntaxError("%r tag requires 1 or 3 arguments" % tokens[0])
