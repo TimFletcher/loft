@@ -26,9 +26,9 @@ class EntryAdmin(admin.ModelAdmin):
     admin_link.allow_tags = True
     admin_link.short_description = _('Link')
 
-    def format_date(self, obj):        
-        return obj.created.strftime('%d %b, %Y')
-    format_date.short_description = _('Date Created')
+    def format_date(self, obj):
+        return obj.publish_date.strftime('%d %b, %Y')
+    format_date.short_description = _('Date Published')
 
     def make_published(self, request, queryset):
         row_count = queryset.update(status=Entry.LIVE)
@@ -51,17 +51,17 @@ class EntryAdmin(admin.ModelAdmin):
     disable_comments.short_description = ugettext_lazy("Disable commenting on selected %(verbose_name_plural)s")
     
     list_display = ('title', 'format_date', 'status', 'enable_comments', 'admin_link')
-    list_filter = ('created', 'status', 'categories')
+    list_filter = ('publish_date', 'status', 'categories')
     search_fields = ('title', 'body')
     prepopulated_fields = {'slug': ['title']}
-    ordering = ('-created',)
+    ordering = ('-publish_date',)
     actions = ['make_published', 'make_draft', 'enable_comments', 'disable_comments']
     fieldsets = (
         ('Post Details', {
-            'fields': ('title', 'excerpt', 'body'),
+            'fields': ('title', 'excerpt', 'body', 'publish_date', 'status'),
         }),
         ('Metadata', {
-            'fields': ('categories', 'status', 'markup', 'enable_comments', 'featured', 'flattr'),
+            'fields': ('categories', 'markup', 'enable_comments', 'featured'),
             'classes': ('collapse',)
         }),
         ('Search Engine Optimisation', {

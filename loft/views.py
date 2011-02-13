@@ -24,7 +24,7 @@ def detail(request, klass, slug):
     return {
         'object': obj[0],
         'object_json': obj.values(
-            'title', 'excerpt_html', 'body_html', 'author', 'created',
+            'title', 'excerpt_html', 'body_html', 'author', 'publish_date',
             'featured', 'slug'
         )
     }
@@ -36,7 +36,7 @@ def list(request, klass):
     return {
         'object_list': obj_list,
         'object_list_json': obj_list.values(
-            'title', 'excerpt_html', 'body_html', 'author', 'created',
+            'title', 'excerpt_html', 'body_html', 'author', 'publish_date',
             'featured', 'slug'
         )
     }

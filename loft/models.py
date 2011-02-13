@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.comments.models import Comment
 from django.contrib.comments.signals import comment_was_posted, comment_will_be_posted
@@ -8,10 +9,20 @@ from django.utils.text import truncate_html_words
 from django.utils.translation import ugettext_lazy as _, ugettext
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
-from managers import BlogManager
 from markdown import markdown
 from signals import comment_notifier, comment_spam_check
+from datetime import datetime
 import textile
+
+
+class BlogManager(models.Manager):
+
+    def published(self):
+        return self.filter(
+            Q(publish_date__lte=datetime.now()) | Q(publish_date__isnull=True),
+            status=self.model.PUBLISHED
+        )
+
 
 class Category(models.Model):
 
@@ -35,15 +46,20 @@ class Category(models.Model):
 
 class Entry(models.Model):
 
-    LIVE, DRAFT = range(1,3)
+    PUBLISHED, DRAFT = range(1,3)
     STATUS_CHOICES = (
-        (LIVE, _('Published')),
+        (PUBLISHED, _('Published')),
         (DRAFT, _('Draft'))
     )
+    MARKDOWN, TEXTILE = range(1,3)
     MARKUP_CHOICES = (
-        ('markdown', _('Markdown')),
-        ('textile', _('Textile')),
+        (MARKDOWN, _('Markdown')),
+        (TEXTILE, _('Textile')),
     )
+    
+    MARKUP_HELP = _("""Select the type of markup you are using in this entry.<br/>
+<a href="http://daringfireball.net/projects/markdown/basics" target="_blank">Markdown Guide</a> - 
+<a href="http://thresholdstate.com/articles/4312/the-textile-reference-manual" target="_blank">Textile Guide</a>""")
 
     # Core
     title        = models.CharField(_('title'), max_length=250, db_index=True)
@@ -51,17 +67,14 @@ class Entry(models.Model):
     excerpt_html = models.TextField(editable=False, blank=True)
     body         = models.TextField(_('body'), db_index=True)
     body_html    = models.TextField(editable=False, blank=True)
-    # images       = models.ManyToManyField('django_snipshot.Image', related_name="entry_images")
 
     # Meta
     author          = models.ForeignKey(User, verbose_name=_('user'))
-    created         = models.DateTimeField(auto_now_add=True)
-    updated         = models.DateTimeField(auto_now=True)
+    publish_date    = models.DateTimeField(blank=True, null=True, help_text=_("Only set this if you want your article to be published on a future date."))
     enable_comments = models.BooleanField(_('enable comments'), default=True)
-    status          = models.IntegerField(_('status'), choices=STATUS_CHOICES, default=LIVE)
+    status          = models.IntegerField(_('status'), choices=STATUS_CHOICES, default=DRAFT)
     featured        = models.BooleanField(_('featured'), default=False)
-    markup          = models.CharField(_('markup'), choices=MARKUP_CHOICES, default='textile', max_length=8)
-    flattr          = models.BooleanField(default=False, help_text=_("You'll also need to manually add this article to Flattr."))
+    markup          = models.IntegerField(_('markup'), choices=MARKUP_CHOICES, default=MARKDOWN, help_text=MARKUP_HELP)
     categories      = models.ManyToManyField('loft.Category', blank=True, related_name="entry_categories", verbose_name=Category._meta.verbose_name_plural)
 
     # SEO
@@ -75,80 +88,102 @@ class Entry(models.Model):
 
     class Meta:
         verbose_name_plural = _('entries')
-        ordering = ['-created']
+        ordering = ['-publish_date']
     
     def __unicode__(self):
         return self.title
 
     def save(self, **kwargs):
-        
+        self.body_html = self.create_markup(self.body)
+        if self.excerpt:
+            self.excerpt_html = self.create_markup(self.excerpt)
+
+        # If the entry doesn't have a slug the first time it's saved, add one
+        if not self.id:
+            if not self.slug:
+                self.slug = self.create_slug(self.title)
+            if not self.publish_date:
+                self.publish_date = datetime.now()
+        super(Entry, self).save(**kwargs)
+
+    def create_markup(self, content):
         """
         Create textile OR markdown versions of the excerpt and body fields.
         Syntax highlight any code found if using Markdown.
         """
+        if self.markup == Entry.MARKDOWN:
+            return markdown(content, ['codehilite'])
+        elif self.markup == Entry.TEXTILE:
+            return textile.textile(content)
+        else:
+            return content
 
-        if self.markup == 'markdown':
-            self.body_html = markdown(self.body, ['codehilite'])
-            if self.excerpt:
-                self.excerpt_html = markdown(self.excerpt, ['codehilite'])
-        elif self.markup == 'textile':
-            self.body_html = textile.textile(self.body)
-            if self.excerpt:
-                self.excerpt_html = textile.textile(self.excerpt)
-        super(Entry, self).save(**kwargs)
+    def create_slug(self, title):
+        return slugify(title)
 
     def permalink(self, text=None, title=None):
-        
-        """ Returns an HTML link for use in the admin """
-        
+        """
+        Returns an HTML link for use in the admin
+        """
         if text is None: text = self.title
         if title is None: title = ugettext("Permalink to this post")
         return mark_safe('<a href="%s" rel="bookmark permalink" title="%s">%s</a>' % (self.get_absolute_url(), title, text))
 
     def lead_in(self):
-        
         """
         Returns a truncated version of the excerpt or main content with an
         appended 'read more...' link
         """
-        
         if self.excerpt:
             html = self.excerpt
         else:
             html = truncate_html_words(self.body, 50, end_text='')
         permalink = self.permalink(text=ugettext("read more&hellip;"), title=ugettext("Read full article"))
         content = "%s %s" % (html, permalink)
-        
-        if self.markup == 'markdown':
-            return mark_safe(markdown(self.excerpt, ['codehilite']))
-        elif self.markup == 'textile':
-            return mark_safe(textile.textile(content))
-    
-    def next_entry(self):
-        """ Utility method to return the next published entry by date """
-        return self.get_next_by_date_created(status=self.LIVE)
 
-    def previous_entry(self):
-        """ Utility method to return the previous published entry by date """
-        return self.get_previous_by_date_created(status=self.LIVE)
+        if self.markup == Entry.MARKDOWN:
+            return mark_safe(markdown(self.excerpt, ['codehilite']))
+        elif self.markup == Entry.TEXTILE:
+            return mark_safe(textile.textile(content))
+
+    def get_previous_entry(self):
+        """
+        Utility method to return the previous published entry
+        """
+        qs = Entry.objects.published().exclude(pk=self.pk)
+        try:
+            return qs.filter(publish_date__lte=self.publish_date).order_by('publish_date')[0]
+        except IndexError, e:
+            return None
+
+    def get_next_entry(self):
+        """
+        Utility method to return the next published entry
+        """
+        qs = Entry.objects.published().exclude(pk=self.pk)
+        try:
+            return qs.filter(publish_date__gte=self.publish_date).order_by('-publish_date')[0]
+        except IndexError, e:
+            return None
 
     def is_draft(self):
         return self.status == self.DRAFT
 
-    def is_live(self):
-        return self.status == self.LIVE
+    def is_published(self):
+        return self.status == self.PUBLISHED
 
-    def get_absolute_url(self):
-        if self.status == self.LIVE:
+    def get_absolute_url(self, user=None):
+        if self.status == self.PUBLISHED:
             name = 'blog_entry_detail'
-            kwargs = {
-                'slug': self.slug
-            }
+            kwargs = {'slug': self.slug}
         else:
-            name = 'blog_entry_draft'
-            kwargs = {
-                'object_id': self.id
-            }
+            if user:
+                # if (user.is_staff or user.is_superuser) and user.is_authenticated(): # What about permission to view the object?
+                if user.is_authenticated(): # What about permission to view the object?
+                    name = 'blog_entry_draft'
+                    kwargs = {'object_id': self.id}
+            else:
+                return '/404/'
         return reverse(name, kwargs=kwargs)
     
 # If we're using static-generator, blow away the cached files on save.
