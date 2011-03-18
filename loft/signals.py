@@ -25,12 +25,9 @@ def comment_spam_check(sender, comment, request, **kwargs):
             }
             
             if ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True):
-                comment.flags.create(
-                    user=comment.content_object.author,
-                    flag='spam'
-                )
                 comment.is_public = False
                 comment.save()
+            return ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True)
     else:
         return True
 
