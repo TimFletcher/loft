@@ -10,7 +10,7 @@ def comment_spam_check(sender, comment, request, **kwargs):
     a 400 bad request if it was detected as such.
     """
     AKISMET_API_KEY = getattr(settings, 'AKISMET_API_KEY', False)
-    if AKISMET_API_KEY:
+    if AKISMET_API_KEY and not settings.DEBUG:
         ak = Akismet(
             key=AKISMET_API_KEY,
             blog_url='http://%s/' % Site.objects.get_current().domain
@@ -27,10 +27,6 @@ def comment_spam_check(sender, comment, request, **kwargs):
             if ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True):
                 comment.is_public = False
                 comment.save()
-            return ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True)
-    else:
-        return True
-
 
 def comment_notifier(sender, comment, **kwargs):
     """
