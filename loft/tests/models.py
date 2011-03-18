@@ -14,6 +14,7 @@ class EntryTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.superuser = User.objects.get(username='superuser')
+        self.anonymous = User.objects.get(username='anonymous')
         self.now = datetime.now()
         self.last_week = self.now - timedelta(days=7)
         self.next_week = self.now + timedelta(days=7)
@@ -35,7 +36,7 @@ class EntryTestCase(TestCase):
         """
         Only live entries
         """
-        # Not published due to (default) status
+        # Not published due to default status (status=Entry.DRAFT)
         self.new_entry("entry 1", "An entry.")
         # Published due to status
         self.new_entry("entry 2", "An entry", status=Entry.PUBLISHED)
@@ -92,24 +93,37 @@ class EntryTestCase(TestCase):
         a1.save()
         self.assertEquals('another-new-slug', a1.slug)
         
-    def test_get_absolute_url(self):
+    def test_anonymous_entry_access(self):
         """
-        Authenticated and anonymous users viewing published and draft posts
+        Anonymous users viewing published and draft posts
         """
         a1 = self.new_entry("Entry 1", "A published entry", status=Entry.PUBLISHED)
         a2 = self.new_entry("Entry 2", "An unpublished entry")
-        
+
         # Anonymous user can view a published entry
         r1 = self.client.get(a1.get_absolute_url())
         self.assertEqual(r1.status_code, 200)
 
         # Anonymous user cannot view an unpublished entry
         r2 = self.client.get(a2.get_absolute_url())
-        self.assertEqual(r2.status_code, 404)
 
-        # Authenticated user can view an unpublished entry
+    def test_authenticated_entry_access(self):
+        """
+        Authenticated users viewing published and draft posts
+        """
+        a1 = self.new_entry("Entry 1", "A published entry", status=Entry.PUBLISHED)
+        a2 = self.new_entry("Entry 2", "An unpublished entry")
         user = User.objects.create_user("user","user@example.com", "password")
         user.save()
         self.client.login(username="user", password="password")
-        response = self.client.get(a2.get_absolute_url(user=user))
+
+        # Authenticated non-staff user cannot view an unpublished entry
+        response = self.client.get(a2.get_absolute_url())
+        self.assertEqual(response.status_code, 302)
+        
+        # Authenticated staff user can view an unpublished entry
+        user.is_staff=True
+        user.save()
+        self.client.login(username="user", password="password")
+        response = self.client.get(a2.get_absolute_url())
         self.assertEqual(response.status_code, 200)

@@ -9,6 +9,7 @@ from django.utils.text import truncate_html_words
 from django.utils.translation import ugettext_lazy as _, ugettext
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
+from django import http
 from markdown import markdown
 from signals import comment_notifier, comment_spam_check
 from datetime import datetime
@@ -173,17 +174,16 @@ class Entry(models.Model):
         return self.status == self.PUBLISHED
 
     def get_absolute_url(self, user=None):
+        """
+        Return a url based on the publication status of the object. Access
+        control of these urls should be done in their views or the URL conf.
+        """
         if self.status == self.PUBLISHED:
             name = 'blog_entry_detail'
             kwargs = {'slug': self.slug}
         else:
-            if user:
-                # if (user.is_staff or user.is_superuser) and user.is_authenticated(): # What about permission to view the object?
-                if user.is_authenticated(): # What about permission to view the object?
-                    name = 'blog_entry_draft'
-                    kwargs = {'object_id': self.id}
-            else:
-                return '/404/'
+            name = 'blog_entry_draft'
+            kwargs = {'object_id': self.id}
         return reverse(name, kwargs=kwargs)
     
 # If we're using static-generator, blow away the cached files on save.

@@ -5,13 +5,12 @@ from django.conf import settings
 from akismet import Akismet
 
 def comment_spam_check(sender, comment, request, **kwargs):
-
     """
     Check a comment to see if Akismet flags it as spam and deletes it if it
     was detected as such.
     """
     AKISMET_API_KEY = getattr(settings, 'AKISMET_API_KEY', False)
-    if AKISMET_API_KEY:
+    if AKISMET_API_KEY and not settings.DEBUG:
         ak = Akismet(
             key=AKISMET_API_KEY,
             blog_url='http://%s/' % Site.objects.get_current().domain
@@ -24,16 +23,15 @@ def comment_spam_check(sender, comment, request, **kwargs):
                 'comment_type': 'comment',
                 'comment_author': comment.user_name.encode('utf-8'),
             }
-            print ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True)
             return ak.comment_check(comment.comment.encode('utf-8'), data=data, build_data=True)
     else:
         return True
 
 
 def comment_notifier(sender, comment, **kwargs):
-
-    """ Email managers when a new comment is posted """
-
+    """
+    Email managers when a new comment is posted
+    """
     if comment.is_public:
         subject = "New comment by %s on %s" % (comment.user_name, Site.objects.get_current().domain)
         body = render_to_string(
@@ -42,6 +40,3 @@ def comment_notifier(sender, comment, **kwargs):
             }
         )
         mail_managers(subject, body, fail_silently=False, connection=None)
-def fname():
-    """docstring for fname"""
-    pass

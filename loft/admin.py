@@ -18,7 +18,7 @@ import urlparse
 class EntryAdmin(admin.ModelAdmin):
     
     def admin_link(self, obj):
-        if obj.status == Entry.LIVE:
+        if obj.status == Entry.PUBLISHED:
             text = _("View on site") + " &raquo;"
         else:
             text = _("Preview draft") + " &raquo;"
@@ -31,7 +31,7 @@ class EntryAdmin(admin.ModelAdmin):
     format_date.short_description = _('Date Published')
 
     def make_published(self, request, queryset):
-        row_count = queryset.update(status=Entry.LIVE)
+        row_count = queryset.update(status=Entry.PUBLISHED)
         messages.info(request, '%d entr%s set as published.' % (row_count, pluralize(row_count, 'y was,ies were')))
     make_published.short_description = ugettext_lazy("Set selected %(verbose_name_plural)s as published")
 
