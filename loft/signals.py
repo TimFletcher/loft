@@ -6,11 +6,11 @@ from akismet import Akismet
 
 def comment_spam_check(sender, comment, request, **kwargs):
     """
-    Check a comment to see if Akismet flags it as spam and deletes it if it
-    was detected as such.
+    Check a comment to see if Akismet flags it as spam and (ultimately) return
+    a 400 bad request if it was detected as such.
     """
     AKISMET_API_KEY = getattr(settings, 'AKISMET_API_KEY', False)
-    if AKISMET_API_KEY and not settings.DEBUG:
+    if AKISMET_API_KEY:
         ak = Akismet(
             key=AKISMET_API_KEY,
             blog_url='http://%s/' % Site.objects.get_current().domain
